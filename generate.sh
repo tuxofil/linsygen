@@ -9,13 +9,20 @@ TMPDIR=`pwd`/tmp
 ROOTFS="$TMPDIR"/rootfs
 IMG="$TMPDIR"/image.raw
 
+# list of directories, binded from outside of disk image
+# (this can reduce overall disk image size, when
+# some file are not needed at target system runtime).
+FAKES="/var/cache/zypp /etc/zypp"
+
 set -e
 
 ## ---------------------------------------------
 ## cleaning...
 if [ -d "$ROOTFS" ]; then
+    for F in $FAKES; do
+        umount "$ROOTFS"/"$F" || :
+    done
     umount "$ROOTFS"/dev || :
-    umount "$ROOTFS"/var/cache/zypp || :
     chroot "$ROOTFS" umount -a || :
     umount -f "$ROOTFS" || :
     rmdir "$ROOTFS"
@@ -28,6 +35,7 @@ if [ -f $IMG ]; then
     done
     rm -f -- "$IMG"
 fi
+rm -rf -- "$TMPDIR"/fakefs
 
 ## ---------------------------------------------
 ## create disk image and mount it...
@@ -48,10 +56,11 @@ mount "$LOOPDEV1" "$ROOTFS"
 mkdir -m 755 -p "$ROOTFS"/dev
 mknod -m 666 "$ROOTFS"/dev/null c 1 3
 mknod -m 666 "$ROOTFS"/dev/zero c 1 5
-# fool zypper to not store caches inside image
-mkdir -p "$TMP"/zypper-cache
-mkdir -p "$ROOTFS"/var/cache/zypp
-mount "$TMP"/zypper-cache "$ROOTFS"/var/cache/zypp -o bind
+for F in $FAKES; do
+    mkdir -p "$TMPDIR"/fakefs/"$F"
+    mkdir -p "$ROOTFS"/"$F"
+    mount "$TMPDIR"/fakefs/"$F" "$ROOTFS"/"$F" -o bind
+done
 
 ## ---------------------------------------------
 ## register package repos...
@@ -148,8 +157,6 @@ chroot "$ROOTFS" sh -c "echo '$ROOT_PASSWORD' | passwd --stdin"
 chroot "$ROOTFS" mount /proc
 chroot "$ROOTFS" mkinitrd -d "$LOOPDEV1" -f block
 chroot "$ROOTFS" lilo -v -C /etc/lilo-loop.conf
-chroot "$ROOTFS" umount /proc
-umount "$ROOTFS"/dev
 
 ## ---------------------------------------------
 ## clean image...
@@ -165,11 +172,20 @@ zypper \
 
 ## ---------------------------------------------
 ## umounting target...
-umount "$ROOTFS"/var/cache/zypp
+chroot "$ROOTFS" umount /proc
+umount "$ROOTFS"/dev
+for F in $FAKES; do
+    umount "$ROOTFS"/"$F"
+done
 umount "$ROOTFS"
 kpartx -d "$LOOPDEV"
 losetup --detach "$LOOPDEV"
+
+## ---------------------------------------------
+## cleaning temporary files...
 rmdir "$ROOTFS"
+rm -rf -- "$TMPDIR"/fakefs/*
+rmdir "$TMPDIR"/fakefs
 
 ## ---------------------------------------------
 ## success
