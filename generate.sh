@@ -30,6 +30,7 @@ fi
 
 ## ---------------------------------------------
 ## create disk image and mount it...
+mkdir -p "$TMPDIR"
 qemu-img create -f raw "$IMG" ${DISKSIZE}M
 LOOPDEV=`losetup --find`
 losetup "$LOOPDEV" "$IMG"
