@@ -12,7 +12,7 @@ IMG="$TMPDIR"/image.raw
 # list of directories, binded from outside of disk image
 # (this can reduce overall disk image size, when
 # some file are not needed at target system runtime).
-FAKES="/var/cache/zypp /etc/zypp"
+FAKES="/var/cache/zypp /etc/zypp /usr/lib/perl5"
 
 set -e
 
