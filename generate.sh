@@ -170,7 +170,6 @@ umount "$ROOTFS"
 kpartx -d "$LOOPDEV"
 losetup --detach "$LOOPDEV"
 rmdir "$ROOTFS"
-rm -rf -- "$TMPDIR"/zypper-cache
 
 ## ---------------------------------------------
 ## success
