@@ -148,9 +148,14 @@ umount "$ROOTFS"/dev
 ## ---------------------------------------------
 ## clean image...
 ## ---------------------------------------------
-## uninstalling packages...
-#zypper \
-#    --root "$ROOTFS" \
+zypper \
+    --root "$ROOTFS" \
+    --non-interactive \
+    remove \
+    --name \
+    --clean-deps \
+    -- \
+    mkinitrd perl
 rm -rf -- "$ROOTFS"/var/cache/zypp
 
 ## ---------------------------------------------
