@@ -17,7 +17,6 @@ it must be started with superuser privileges.
 You need following tools installed to run generator:
 - zypper;
 - chroot;
-- qemu-img;
 - losetup;
 - parted;
 - kpartx;
