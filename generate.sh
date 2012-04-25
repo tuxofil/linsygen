@@ -15,6 +15,7 @@ set -e
 ## cleaning...
 if [ -d "$ROOTFS" ]; then
     umount "$ROOTFS"/dev || :
+    umount "$ROOTFS"/var/cache/zypp || :
     chroot "$ROOTFS" umount -a || :
     umount -f "$ROOTFS" || :
     rmdir "$ROOTFS"
@@ -47,6 +48,10 @@ mount "$LOOPDEV1" "$ROOTFS"
 mkdir -m 755 -p "$ROOTFS"/dev
 mknod -m 666 "$ROOTFS"/dev/null c 1 3
 mknod -m 666 "$ROOTFS"/dev/zero c 1 5
+# fool zypper to not store caches inside image
+mkdir -p "$TMP"/zypper-cache
+mkdir -p "$ROOTFS"/var/cache/zypp
+mount "$TMP"/zypper-cache "$ROOTFS"/var/cache/zypp -o bind
 
 ## ---------------------------------------------
 ## register package repos...
@@ -156,15 +161,16 @@ zypper \
     --name \
     --clean-deps \
     -- \
-    mkinitrd perl
-rm -rf -- "$ROOTFS"/var/cache/zypp
+    perl
 
 ## ---------------------------------------------
 ## umounting target...
+umount "$ROOTFS"/var/cache/zypp
 umount "$ROOTFS"
 kpartx -d "$LOOPDEV"
 losetup --detach "$LOOPDEV"
 rmdir "$ROOTFS"
+rm -rf -- "$TMPDIR"/zypper-cache
 
 ## ---------------------------------------------
 ## success
