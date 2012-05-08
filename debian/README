@@ -1,0 +1,51 @@
+              Linux system generator script.
+
+SUMMARY
+
+Produces raw disk image, ready for use in fully virtualisation
+systems like QEMU.
+
+This script is adapted for Debian environment and creates
+system based on package list specified in 'package.list' file
+from mirror, specified by MIRROR variable inside ./generate.sh script.
+
+REQUIREMENTS
+
+Generator script operates with block devices and operating systems so
+it must be started with superuser privileges.
+
+You need following tools installed to run generator:
+- debootstrap;
+- chroot;
+- losetup;
+- parted;
+- kpartx;
+- fdisk;
+- ssh-keygen;
+- tar;
+- mkfs.ext3.
+
+Also you need to load following kernel modules:
+- loop - to use arbitrary files as block devices;
+- dm_mod (device mapper) - to map disk image partitions to separate block devices.
+
+CONFIGURATION
+
+At now available only disk image size and root password, which can be
+defined in first lines of './generate.sh' file.
+Rest of target system configuration you must apply by yourself by
+scripting.
+
+RUNNING GENERATION
+
+Invocate to './generate.sh' from current directory. It will exits
+with 0 exit code on success and 'tmp/image.raw' file as result of generation.
+Also you will find '.ssh/id_rsa' SSH identity file which can be used for
+passwordless access to running VMs started with disk image generated.
+
+RUNNING TARGET SYSTEM
+
+You can run target system with command like this:
+
+$ qemu -m 128M -hda tmp/image.raw -net nic,vlan=0,model=virtio -net tap,vlan=0,ifname=tap0,script=no
+
