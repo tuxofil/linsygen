@@ -4,6 +4,10 @@
 DISKSIZE=1024
 ROOT_PASSWORD=root
 
+# Contents of this tarballs will be extracted to image
+# root directory preserving file ownership and permissions.
+TARBALLS=""
+
 # some utils (zypper) needs an absolute paths only
 TMPDIR=`pwd`/tmp
 ROOTFS="$TMPDIR"/rootfs
@@ -23,6 +27,7 @@ if [ -d "$ROOTFS" ]; then
         umount "$ROOTFS"/"$F" || :
     done
     umount "$ROOTFS"/dev || :
+    umount "$ROOTFS"/proc || :
     chroot "$ROOTFS" umount -a || :
     umount -f "$ROOTFS" || :
     rmdir "$ROOTFS"
@@ -68,6 +73,7 @@ done
 for URL in `cat repo.list`; do
     zypper \
         --root "$ROOTFS" \
+        --non-interactive \
         addrepo \
         --refresh \
         "$URL" "$URL"
@@ -88,6 +94,7 @@ zypper \
     -- \
     aaa_base sysvinit util-linux lilo kernel-default-base perl openssh \
     less vim pciutils iputils \
+    syslog-ng netcfg \
     `cat package.list`
 
 ## ---------------------------------------------
@@ -148,7 +155,19 @@ ssh-keygen -t rsa -N "" -q -f "$ROOTFS"/root/.ssh/id_rsa
 ssh-keygen -y -q -f .ssh/id_rsa > "$ROOTFS"/root/.ssh/authorized_keys
 # to jump between nodes without password:
 ssh-keygen -y -q -f "$ROOTFS"/root/.ssh/id_rsa >> "$ROOTFS"/root/.ssh/authorized_keys
-chroot "$ROOTFS" chkconfig --add sshd
+# configure and enable rest of essential services:
+chroot "$ROOTFS" chkconfig earlysyslog on
+chroot "$ROOTFS" chkconfig syslog on
+chroot "$ROOTFS" chkconfig sshd on
+# copy custom files...
+for CUSTOM in $TARBALLS; do
+    tar --extract \
+        --file "$CUSTOM" \
+        --overwrite \
+        --preserve-permissions \
+        --same-owner \
+        --directory "$ROOTFS"
+done
 
 ## ---------------------------------------------
 ## creating initrd...
@@ -158,6 +177,7 @@ chroot "$ROOTFS" sh -c "echo '$ROOT_PASSWORD' | passwd --stdin"
 chroot "$ROOTFS" mount /proc
 chroot "$ROOTFS" mkinitrd -d "$LOOPDEV1" -f block
 chroot "$ROOTFS" lilo -v -C /etc/lilo-loop.conf
+cp -Lvf "$ROOTFS"/boot/vmlinuz "$ROOTFS"/boot/initrd "$TMPDIR"/
 
 ## ---------------------------------------------
 ## clean image...
