@@ -16,7 +16,7 @@ IMG="$TMPDIR"/image.raw
 # list of directories, binded from outside of disk image
 # (this can reduce overall disk image size, when
 # some file are not needed at target system runtime).
-FAKES="/var/cache/zypp /etc/zypp /usr/lib/perl5"
+FAKES="/tmp /var/cache/zypp /etc/zypp /usr/lib/perl5"
 
 set -e
 
@@ -121,7 +121,7 @@ sysfs   /sys      sysfs   defaults 0 0
 devpts  /dev/pts  devpts  mode=0620,gid=5 0 0
 EOF
 # get disk geometry...
-REGEXP='^([0-9]+) heads, ([0-9]+) sectors/track, ([0-9]+) cylinders, .*$'
+REGEXP='^([0-9]+) heads, ([0-9]+) sectors/track, ([0-9]+) cylinders.*$'
 GEOMETRY=`fdisk -l "$LOOPDEV" | grep -E "$REGEXP" | sed -r "s@$REGEXP@\1 \2 \3@"`
 set $GEOMETRY
 cat > "$ROOTFS"/etc/lilo-loop.conf << EOF
