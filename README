@@ -22,6 +22,7 @@ You need following tools installed to run generator:
 - kpartx;
 - fdisk;
 - ssh-keygen;
+- tar;
 - mkfs.ext3.
 
 Also you need to load following kernel modules:
