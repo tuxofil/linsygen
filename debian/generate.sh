@@ -163,6 +163,7 @@ chroot "$ROOTFS" apt-get \
     --no-install-recommends \
     install \
     iproute iputils-ping pciutils less linux-image-amd64 \
+    netbase ifupdown vim ssh \
     `cat package.list`
 cp -Lvf "$ROOTFS"/boot/vmlinuz-* "$TMPDIR"/vmlinuz
 cp -Lvf "$ROOTFS"/boot/initrd.img-* "$TMPDIR"/initrd
