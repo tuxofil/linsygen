@@ -76,7 +76,7 @@ done
 ## install system...
 debootstrap \
     --variant=minbase \
-    --include=apt-utils,locales,dialog \
+    --include=apt-utils,locales,dialog,lilo \
     "$SUITE" \
     "$ROOTFS" \
     "$MIRROR"
@@ -109,6 +109,7 @@ deb-src $MIRROR $SUITE-updates main
 EOF
 chroot "$ROOTFS" locale-gen en_EN.UTF-8
 cat > "$ROOTFS"/etc/fstab << EOF
+/       /         auto    defaults 0 0
 proc    /proc     proc    nosuid,noexec,gid=proc 0 0
 sysfs   /sys      sysfs   defaults 0 0
 devpts  /dev/pts  devpts  mode=0620,gid=5 0 0
@@ -128,8 +129,8 @@ disk=$LOOPDEV
   start=63
 delay=1
 vga=0
-image=/boot/vmlinuz
-  initrd=/boot/initrd
+image=/vmlinuz
+  initrd=/initrd.img
   append="root=/dev/sda1"
   label=Linux
 EOF
@@ -167,6 +168,7 @@ chroot "$ROOTFS" apt-get \
     `cat package.list`
 cp -Lvf "$ROOTFS"/boot/vmlinuz-* "$TMPDIR"/vmlinuz
 cp -Lvf "$ROOTFS"/boot/initrd.img-* "$TMPDIR"/initrd
+chroot "$ROOTFS" lilo -v -C /etc/lilo-loop.conf
 
 ## ---------------------------------------------
 ## umounting target...
