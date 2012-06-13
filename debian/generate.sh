@@ -50,7 +50,7 @@ rm -rf -- "$TMPDIR"/fakefs
 ## create disk image and mount it...
 mkdir -p "$TMPDIR"
 BYTES=`expr $DISKSIZE '*' 1024 '*' 1024`
-dd if=/dev/zero of="$IMG" bs=1 count=1 seek=$BYTES conv=notrunc
+dd if=/dev/zero of="$IMG" bs=1 count=1 seek=$(($BYTES - 1)) conv=notrunc
 LOOPDEV=`losetup --find`
 losetup "$LOOPDEV" "$IMG"
 parted --script "$LOOPDEV" mklabel msdos
