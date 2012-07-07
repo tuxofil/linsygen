@@ -116,7 +116,7 @@ sysfs   /sys      sysfs   defaults 0 0
 devpts  /dev/pts  devpts  mode=0620,gid=5 0 0
 EOF
 echo "$HOSTNAME" > "$ROOTFS"/etc/hostname
-sed --in-place "1i\127.0.0.1\t$HOSTNAME" /etc/hosts
+sed --in-place "1i\127.0.0.1\t$HOSTNAME" "$ROOTFS"/etc/hosts
 # get disk geometry...
 REGEXP='^([0-9]+) heads, ([0-9]+) sectors/track, ([0-9]+) cylinders.*$'
 GEOMETRY=`fdisk -l "$LOOPDEV" | grep -E "$REGEXP" | sed -r "s@$REGEXP@\1 \2 \3@"`
