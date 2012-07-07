@@ -76,7 +76,7 @@ done
 ## install system...
 debootstrap \
     --variant=minbase \
-    --include=apt-utils,locales,dialog,lilo,acpi-support-base \
+    --include=apt-utils,locales,dialog,lilo,acpi-support-base,dhcpcd \
     "$SUITE" \
     "$ROOTFS" \
     "$MIRROR"
