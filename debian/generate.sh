@@ -1,29 +1,12 @@
 #!/bin/sh -x
 
-# package source
-SUITE="squeeze"
-MIRROR="http://ftp.ua.debian.org/debian/"
-
-# disk image size (in megabytes)
-DISKSIZE=1024
-ROOT_PASSWORD=root
-HOSTNAME=linux
-
-# Contents of this tarballs will be extracted to image
-# root directory preserving file ownership and permissions.
-TARBALLS=""
-
-# some utils needs an absolute paths only
-TMPDIR=`pwd`/tmp
-ROOTFS="$TMPDIR"/rootfs
-IMG="$TMPDIR"/image.raw
-
-# list of directories, binded from outside of disk image
-# (this can reduce overall disk image size, when
-# some file are not needed at target system runtime).
-FAKES="/tmp /var/cache/apt /var/lib/apt"
+if [ -z "$1" ]; then
+    echo "Usage: $0 <config>" 1>&2
+    exit 1
+fi
 
 set -e
+. "$1"
 
 ## ---------------------------------------------
 ## cleaning...
@@ -166,7 +149,7 @@ chroot "$ROOTFS" apt-get \
     install \
     iproute iputils-ping pciutils less linux-image-amd64 \
     netbase ifupdown vim ssh \
-    `cat package.list`
+    $PACKAGES
 ## configure hostname
 echo "$HOSTNAME" > "$ROOTFS"/etc/hostname
 sed --in-place "1i\127.0.0.1\t$HOSTNAME" "$ROOTFS"/etc/hosts
