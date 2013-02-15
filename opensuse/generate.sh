@@ -93,7 +93,7 @@ zypper \
     --auto-agree-with-licenses \
     --no-recommends \
     -- \
-    aaa_base sysvinit util-linux lilo kernel-default-base perl openssh \
+    aaa_base sysvinit util-linux lilo kernel-desktop perl openssh \
     less vim pciutils iputils \
     syslog-ng netcfg \
     `cat package.list`
