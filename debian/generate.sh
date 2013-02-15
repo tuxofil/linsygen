@@ -142,7 +142,7 @@ done
 ## creating initrd...
 mount /dev "$ROOTFS"/dev -o bind
 chroot "$ROOTFS" sh -c "echo root:'$ROOT_PASSWORD' | chpasswd"
-chroot "$ROOTFS" mount /proc
+mount /proc "$ROOTFS"/proc -o bind
 chroot "$ROOTFS" apt-get --quiet update
 chroot "$ROOTFS" apt-get \
     --quiet --assume-yes \
