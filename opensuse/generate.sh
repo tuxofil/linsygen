@@ -1,24 +1,12 @@
-#!/bin/sh -x
+#!/bin/sh
 
-# disk image size (in megabytes)
-DISKSIZE=1024
-ROOT_PASSWORD=root
-
-# Contents of this tarballs will be extracted to image
-# root directory preserving file ownership and permissions.
-TARBALLS=""
-
-# some utils (zypper) needs an absolute paths only
-TMPDIR=`pwd`/tmp
-ROOTFS="$TMPDIR"/rootfs
-IMG="$TMPDIR"/image.raw
-
-# list of directories, binded from outside of disk image
-# (this can reduce overall disk image size, when
-# some file are not needed at target system runtime).
-FAKES="/tmp /var/cache/zypp /etc/zypp /usr/lib/perl5"
+if [ -z "$1" ]; then
+    echo "Usage: $0 <config>" 1>&2
+    exit 1
+fi
 
 set -e
+. "$1"
 
 ## ---------------------------------------------
 ## cleaning...
@@ -71,7 +59,7 @@ done
 
 ## ---------------------------------------------
 ## register package repos...
-for URL in `cat repo.list`; do
+for URL in $REPOS; do
     zypper \
         --root "$ROOTFS" \
         --non-interactive \
@@ -96,7 +84,7 @@ zypper \
     aaa_base sysvinit util-linux lilo kernel-desktop perl openssh \
     less vim pciutils iputils \
     syslog-ng netcfg \
-    `cat package.list`
+    $PACKAGES
 
 ## ---------------------------------------------
 ## generate ssh key for access to target...
