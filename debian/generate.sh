@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh
 
 if [ -z "$1" ]; then
     echo "Usage: $0 <config>" 1>&2
