@@ -16,6 +16,7 @@ if [ -d "$ROOTFS" ]; then
     done
     umount "$ROOTFS"/dev || :
     umount "$ROOTFS"/proc || :
+    umount "$ROOTFS"/sys || :
     chroot "$ROOTFS" umount -a || :
     umount -f "$ROOTFS" || :
     rmdir "$ROOTFS"
@@ -38,7 +39,7 @@ dd if=/dev/zero of="$IMG" bs=1 count=1 seek=$(($BYTES - 1)) conv=notrunc
 LOOPDEV=`losetup --find`
 losetup "$LOOPDEV" "$IMG"
 parted --script "$LOOPDEV" mklabel msdos
-parted --script "$LOOPDEV" mkpart primary ext2 0 $DISKSIZE
+parted --script "$LOOPDEV" mkpart primary ext2 1 $DISKSIZE
 kpartx -a "$LOOPDEV"
 LOOPDEV1=/dev/mapper/`basename "$LOOPDEV"`p1
 mkfs.ext3 "$LOOPDEV1"
@@ -160,8 +161,10 @@ chroot "$ROOTFS" lilo -v -C /etc/lilo-loop.conf
 
 ## ---------------------------------------------
 ## umounting target...
+sync
 chroot "$ROOTFS" umount /proc
 umount "$ROOTFS"/dev
+umount "$ROOTFS"/sys || :
 for F in $FAKES; do
     umount "$ROOTFS"/"$F"
 done
