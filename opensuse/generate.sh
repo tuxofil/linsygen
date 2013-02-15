@@ -28,6 +28,7 @@ if [ -d "$ROOTFS" ]; then
     done
     umount "$ROOTFS"/dev || :
     umount "$ROOTFS"/proc || :
+    umount "$ROOTFS"/sys || :
     chroot "$ROOTFS" umount -a || :
     umount -f "$ROOTFS" || :
     rmdir "$ROOTFS"
@@ -50,7 +51,7 @@ dd if=/dev/zero of="$IMG" bs=1 count=1 seek=$(($BYTES - 1)) conv=notrunc
 LOOPDEV=`losetup --find`
 losetup "$LOOPDEV" "$IMG"
 parted --script "$LOOPDEV" mklabel msdos
-parted --script "$LOOPDEV" mkpart primary ext2 0 $DISKSIZE
+parted --script "$LOOPDEV" mkpart primary ext2 1 $DISKSIZE
 kpartx -a "$LOOPDEV"
 LOOPDEV1=/dev/mapper/`basename "$LOOPDEV"`p1
 mkfs.ext3 "$LOOPDEV1"
@@ -174,7 +175,7 @@ done
 mount /dev "$ROOTFS"/dev -o bind
 # we need mounted /dev to change root password
 chroot "$ROOTFS" sh -c "echo '$ROOT_PASSWORD' | passwd --stdin"
-chroot "$ROOTFS" mount /proc
+mount /proc "$ROOTFS"/proc -o bind
 chroot "$ROOTFS" mkinitrd -d "$LOOPDEV1" -f block
 chroot "$ROOTFS" lilo -v -C /etc/lilo-loop.conf
 cp -Lvf "$ROOTFS"/boot/vmlinuz "$ROOTFS"/boot/initrd "$TMPDIR"/
@@ -182,19 +183,13 @@ cp -Lvf "$ROOTFS"/boot/vmlinuz "$ROOTFS"/boot/initrd "$TMPDIR"/
 ## ---------------------------------------------
 ## clean image...
 ## ---------------------------------------------
-zypper \
-    --root "$ROOTFS" \
-    --non-interactive \
-    remove \
-    --name \
-    --clean-deps \
-    -- \
-    perl
 
 ## ---------------------------------------------
 ## umounting target...
+sync
 chroot "$ROOTFS" umount /proc
 umount "$ROOTFS"/dev
+umount "$ROOTFS"/sys || :
 for F in $FAKES; do
     umount "$ROOTFS"/"$F"
 done
