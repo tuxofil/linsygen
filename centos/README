@@ -1,0 +1,56 @@
+              Linux system generator script.
+
+SUMMARY
+
+Produces raw disk image, ready for use in fully virtualisation
+systems like QEMU.
+
+This script is adapted for CentOS environment and creates
+CentOS system based on repos and package list specified in
+configuration file.
+
+REQUIREMENTS
+
+Generator script operates with block devices and operating systems so
+it must be started with superuser privileges.
+
+You need following tools installed to run generator:
+- yum;
+- chroot;
+- losetup;
+- parted;
+- kpartx;
+- fdisk;
+- ssh-keygen;
+- tar;
+- mkfs.ext3.
+
+Also you need to load following kernel modules:
+- loop - to use arbitrary files as block devices;
+- dm_mod (device mapper) - to map disk image partitions to separate block devices.
+
+CONFIGURATION
+
+See comments in *.conf files for details.
+
+RUNNING GENERATION
+
+Invocate to './generate.sh ./<config>' from current directory. It will exit
+with 0 exit code on success and 'tmp/image.raw' file as result of generation.
+Also you will find '.ssh/id_rsa' SSH identity file which can be used for
+passwordless access to running VMs started with disk image generated.
+
+RUNNING TARGET SYSTEM
+
+You can run target system with command like this:
+
+$ qemu -m 128M -hda tmp/image.raw -net nic,vlan=0,model=virtio -net tap,vlan=0,ifname=tap0,script=no
+
+CUSTOMISATION
+
+This script uses only widespread system utilities which exists in
+most of Linux distributions. Due to this you can easily
+adapt './generate.sh' script for use in your custom environment.
+The one requirement is for package manager - it must support
+chrooted installation.
+
