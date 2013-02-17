@@ -144,7 +144,7 @@ timeout=1
 
 title CentOS
   root (hd0,0)
-  kernel /vmlinuz ro root=/dev/sda1 rhgb noquiet
+  kernel /vmlinuz ro root=/dev/sda1 rhgb noquiet clocksource_failover
   initrd /initrd
 EOF
 cp --dereference --verbose --force "$ROOTFS"/boot/vmlinuz-* "$ROOTFS"/vmlinuz
