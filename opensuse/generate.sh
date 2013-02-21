@@ -10,6 +10,7 @@ set -e
 
 ## ---------------------------------------------
 ## cleaning...
+modprobe loop dm_mod
 if [ -d "$ROOTFS" ]; then
     for F in $FAKES; do
         umount "$ROOTFS"/"$F" || :
