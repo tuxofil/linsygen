@@ -160,7 +160,7 @@ mount /dev "$ROOTFS"/dev -o bind
 # we need mounted /dev to change root password
 chroot "$ROOTFS" sh -c "echo '$ROOT_PASSWORD' | passwd --stdin"
 mount /proc "$ROOTFS"/proc -o bind
-chroot "$ROOTFS" mkinitrd -d "$LOOPDEV1" -f block
+chroot "$ROOTFS" mkinitrd -d "$LOOPDEV1" -f block -m ata_piix
 chroot "$ROOTFS" lilo -v -C /etc/lilo-loop.conf
 cp -Lvf "$ROOTFS"/boot/vmlinuz "$ROOTFS"/boot/initrd "$TMPDIR"/
 
