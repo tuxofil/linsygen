@@ -136,6 +136,11 @@ MTU=''
 REMOTE_IPADDR=''
 STARTMODE='onboot'
 EOF
+if [ ! -z "$FQDN" ]; then
+    echo "$FQDN" > "$ROOTFS"/etc/HOSTNAME
+    SHORTNAME=`echo "$FQDN" | sed --regexp-extended 's/^([^\.]+)\..*$/\1/'`
+    echo "127.0.0.1 $FQDN $SHORTNAME" >> "$ROOTFS"/etc/hosts
+fi
 mkdir -p "$ROOTFS"/root/.ssh
 ssh-keygen -t rsa -N "" -q -f "$ROOTFS"/root/.ssh/id_rsa
 ssh-keygen -y -q -f .ssh/id_rsa > "$ROOTFS"/root/.ssh/authorized_keys
