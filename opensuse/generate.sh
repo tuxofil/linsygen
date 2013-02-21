@@ -80,11 +80,7 @@ zypper \
     --download-in-advance \
     --auto-agree-with-licenses \
     --no-recommends \
-    -- \
-    aaa_base sysvinit util-linux lilo kernel-desktop perl openssh \
-    less vim pciutils iputils \
-    syslog-ng netcfg \
-    $PACKAGES
+    -- $PACKAGES
 
 ## ---------------------------------------------
 ## generate ssh key for access to target...
