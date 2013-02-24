@@ -180,7 +180,7 @@ mount /proc "$ROOTFS"/proc -o bind
 chroot "$ROOTFS" mkinitrd -d "$LOOPDEV1" -f block -m ata_piix
 echo "*** Create bootloader..."
 chroot "$ROOTFS" lilo -v -C /etc/lilo-loop.conf
-cp -Lvf "$ROOTFS"/boot/vmlinuz "$ROOTFS"/boot/initrd "$TMPDIR"/
+cp -Lf "$ROOTFS"/boot/vmlinuz "$ROOTFS"/boot/initrd "$TMPDIR"/
 
 ## ---------------------------------------------
 ## clean image...
