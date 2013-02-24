@@ -6,23 +6,25 @@ if [ -z "$1" ]; then
 fi
 
 set -e
-. "$1"
+. `readlink --canonicalize "$1"`
 
 ## ---------------------------------------------
 ## cleaning...
 modprobe loop dm_mod
 if [ -d "$ROOTFS" ]; then
+    echo "*** Unmounting image..."
     for F in $FAKES; do
-        umount "$ROOTFS"/"$F" || :
+        umount "$ROOTFS"/"$F" > /dev/null 2>&1 || :
     done
-    umount "$ROOTFS"/dev || :
-    umount "$ROOTFS"/proc || :
-    umount "$ROOTFS"/sys || :
-    chroot "$ROOTFS" umount -a || :
-    umount -f "$ROOTFS" || :
+    umount "$ROOTFS"/dev > /dev/null 2>&1 || :
+    umount "$ROOTFS"/proc > /dev/null 2>&1 || :
+    umount "$ROOTFS"/sys > /dev/null 2>&1 || :
+    chroot "$ROOTFS" umount -a > /dev/null 2>&1 || :
+    umount -f "$ROOTFS" > /dev/null 2>&1 || :
     rmdir "$ROOTFS"
 fi
 if [ -f $IMG ]; then
+    echo "*** Removing old image..."
     LOOPDEVS=`losetup --associated "$IMG" | sed -E 's/^([^:]+).*$/\1/'`
     for LD in $LOOPDEVS; do
         kpartx -d "$LD" || :
@@ -34,6 +36,7 @@ rm -rf -- "$TMPDIR"/fakefs
 
 ## ---------------------------------------------
 ## create disk image and mount it...
+echo "*** Create block device..."
 mkdir -p "$TMPDIR"
 BYTES=`expr $DISKSIZE '*' 1024 '*' 1024`
 dd if=/dev/zero of="$IMG" bs=1 count=1 seek=$(($BYTES - 1)) conv=notrunc
@@ -43,7 +46,8 @@ parted --script "$LOOPDEV" mklabel msdos
 parted --script "$LOOPDEV" mkpart primary ext2 1 $DISKSIZE
 kpartx -a "$LOOPDEV"
 LOOPDEV1=/dev/mapper/`basename "$LOOPDEV"`p1
-mkfs.ext3 "$LOOPDEV1"
+echo "*** Create filesystem..."
+mkfs.ext3 -q "$LOOPDEV1"
 mkdir -m 755 -p "$ROOTFS"
 mount "$LOOPDEV1" "$ROOTFS"
 
@@ -60,10 +64,12 @@ done
 
 ## ---------------------------------------------
 ## register package repos...
+echo "*** Register RPM repositories..."
 for URL in $REPOS; do
     zypper \
         --root "$ROOTFS" \
         --non-interactive \
+        --quiet \
         addrepo \
         --refresh \
         "$URL" "$URL"
@@ -71,11 +77,13 @@ done
 
 ## ---------------------------------------------
 ## installing packages...
+echo "*** Installing packages..."
 zypper \
     --root "$ROOTFS" \
     --gpg-auto-import-keys \
     --no-gpg-checks \
     --non-interactive \
+    --quiet \
     install \
     --name \
     --download-in-advance \
@@ -101,6 +109,7 @@ fi
 
 ## ---------------------------------------------
 ## configuring system...
+echo "*** Create essential system configurations..."
 cat > "$ROOTFS"/etc/fstab << EOF
 proc    /proc     proc    nosuid,noexec,gid=proc 0 0
 sysfs   /sys      sysfs   defaults 0 0
@@ -151,6 +160,7 @@ chroot "$ROOTFS" chkconfig earlysyslog on
 chroot "$ROOTFS" chkconfig syslog on
 chroot "$ROOTFS" chkconfig sshd on
 # copy custom files...
+echo "*** Extracting tarballs..."
 for CUSTOM in $TARBALLS; do
     tar --extract \
         --file "$CUSTOM" \
@@ -162,11 +172,13 @@ done
 
 ## ---------------------------------------------
 ## creating initrd...
+echo "*** Create initrd..."
 mount /dev "$ROOTFS"/dev -o bind
 # we need mounted /dev to change root password
 chroot "$ROOTFS" sh -c "echo '$ROOT_PASSWORD' | passwd --stdin"
 mount /proc "$ROOTFS"/proc -o bind
 chroot "$ROOTFS" mkinitrd -d "$LOOPDEV1" -f block -m ata_piix
+echo "*** Create bootloader..."
 chroot "$ROOTFS" lilo -v -C /etc/lilo-loop.conf
 cp -Lvf "$ROOTFS"/boot/vmlinuz "$ROOTFS"/boot/initrd "$TMPDIR"/
 
@@ -176,6 +188,7 @@ cp -Lvf "$ROOTFS"/boot/vmlinuz "$ROOTFS"/boot/initrd "$TMPDIR"/
 
 ## ---------------------------------------------
 ## umounting target...
+echo "*** Unmounting image..."
 sync
 chroot "$ROOTFS" umount /proc
 umount "$ROOTFS"/dev
@@ -189,6 +202,7 @@ losetup --detach "$LOOPDEV"
 
 ## ---------------------------------------------
 ## cleaning temporary files...
+echo "*** Removing temporary files..."
 rmdir "$ROOTFS"
 rm -rf -- "$TMPDIR"/fakefs/*
 rmdir "$TMPDIR"/fakefs
