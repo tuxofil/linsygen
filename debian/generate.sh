@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 set -e
-. "$1"
+. `readlink --canonicalize-missing "$1"`
 
 ## ---------------------------------------------
 ## cleaning...
@@ -147,10 +147,7 @@ chroot "$ROOTFS" apt-get --quiet update
 chroot "$ROOTFS" apt-get \
     --quiet --assume-yes \
     --no-install-recommends \
-    install \
-    iproute iputils-ping pciutils less linux-image-amd64 \
-    netbase ifupdown vim ssh \
-    $PACKAGES
+    install $PACKAGES
 ## configure hostname
 echo "$HOSTNAME" > "$ROOTFS"/etc/hostname
 sed --in-place "1i\127.0.0.1\t$HOSTNAME" "$ROOTFS"/etc/hosts
