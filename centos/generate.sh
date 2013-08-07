@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 
 set -e
-. "$1"
+. `readlink --canonicalize "$1"`
 
 ## ---------------------------------------------
 ## cleaning...
