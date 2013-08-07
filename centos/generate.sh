@@ -1,5 +1,19 @@
 #!/bin/sh
 
+wait_for_dev(){
+    local DEV="$1"
+    local TIMEOUT="$2"
+    [ -e "$DEV" ] && return
+    if [ $TIMEOUT -gt 0 ]; then
+        echo "Waiting for $DEV..."
+        sleep 1s
+        wait_for_dev "$DEV" `expr $TIMEOUT - 1`
+    else
+        echo "Fatal: timeout waiting for $DEV"
+        return 1
+    fi
+}
+
 if [ -z "$1" ]; then
     echo "Usage: $0 <config>" 1>&2
     exit 1
@@ -42,6 +56,7 @@ parted --script "$LOOPDEV" mklabel msdos
 parted --script "$LOOPDEV" mkpart primary ext2 1 $DISKSIZE
 kpartx -a "$LOOPDEV"
 LOOPDEV1=/dev/mapper/`basename "$LOOPDEV"`p1
+wait_for_dev "$LOOPDEV1" 5
 mkfs.ext3 "$LOOPDEV1"
 ## create the same block devices under the /dev directory
 ## to make able to install GRUB.
