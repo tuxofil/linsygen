@@ -84,6 +84,7 @@ fi
 
 ## ---------------------------------------------
 ## configuring system...
+chmod 777 "$ROOTFS"/tmp
 cat > "$ROOTFS"/etc/apt/sources.list << EOF
 deb $MIRROR $SUITE main
 deb-src $MIRROR $SUITE main
