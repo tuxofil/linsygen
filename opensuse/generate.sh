@@ -115,6 +115,19 @@ proc    /proc     proc    nosuid,noexec,gid=proc 0 0
 sysfs   /sys      sysfs   defaults 0 0
 devpts  /dev/pts  devpts  mode=0620,gid=5 0 0
 EOF
+# LILO: this one is for normal use
+cat > "$ROOTFS"/etc/lilo.conf <<EOF
+lba32
+boot=/dev/sda
+root=/dev/sda1
+map=/boot/map
+delay=2
+image=/vmlinuz
+  label=Linux
+  read-only
+  initrd=/initrd.img
+EOF
+# LILO: And this one is for chrooted installation
 # get disk geometry...
 REGEXP='^([0-9]+) heads, ([0-9]+) sectors/track, ([0-9]+) cylinders.*$'
 GEOMETRY=`fdisk -l "$LOOPDEV" | grep -E "$REGEXP" | sed -r "s@$REGEXP@\1 \2 \3@"`

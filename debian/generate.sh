@@ -156,6 +156,21 @@ sed --in-place "1i\127.0.0.1\t$HOSTNAME" "$ROOTFS"/etc/hosts
 cp -Lvf "$ROOTFS"/boot/vmlinuz-* "$TMPDIR"/vmlinuz
 cp -Lvf "$ROOTFS"/boot/initrd.img-* "$TMPDIR"/initrd
 chroot "$ROOTFS" lilo -v -C /etc/lilo-loop.conf
+# LILO: this config is for normal use.
+# The config is created AFTER linux image installation,
+# because the package postinstall script is failing to install
+# LILO in chrooted environment with the config.
+cat > "$ROOTFS"/etc/lilo.conf <<EOF
+lba32
+boot=/dev/sda
+root=/dev/sda1
+map=/boot/map
+delay=2
+image=/vmlinuz
+  label=Linux
+  read-only
+  initrd=/initrd.img
+EOF
 
 ## ---------------------------------------------
 ## umounting target...
