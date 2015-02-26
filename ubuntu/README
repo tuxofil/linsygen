@@ -1,0 +1,50 @@
+              Linux system generator script.
+
+SUMMARY
+
+Produces raw disk image, ready for use in fully virtualization
+systems like QEMU.
+
+The script is adapted for Ubuntu environment and creates
+Linux system based on packages listed in 'PACKAGES' variable of
+a config file from mirror referenced by 'MIRROR' variable of
+the config file.
+
+See comments in an example configuration file utopic.conf
+Rest of target system configuration you must apply by yourself by
+scripting.
+
+Tested for Utopic.
+
+REQUIREMENTS
+
+The generator script operates with block devices and other
+OS level stuff so it must be started with superuser privileges.
+
+The generator requires following tools installed:
+- debootstrap;
+- chroot;
+- losetup;
+- parted;
+- kpartx;
+- fdisk;
+- ssh-keygen;
+- tar;
+- mkfs.ext3.
+
+Ensure the following kernel modules are loaded before you generate:
+- loop - to use arbitrary files as block devices;
+- dm_mod (device mapper) - to map disk image partitions to separate block devices.
+
+RUNNING GENERATION
+
+Invoke the './generate.sh' from current directory. It will exit
+with 0 exit code on success and 'tmp/image.raw' file as a result of generation.
+Also you will find a '.ssh/id_rsa' SSH identity file which can be used for
+passwordless access to running VMs started with disk image generated.
+
+RUNNING TARGET SYSTEM
+
+You can run target system with command like this:
+
+$ qemu -m 128M -hda tmp/image.raw -net nic,vlan=0,model=virtio -net tap,vlan=0,ifname=tap0,script=no
