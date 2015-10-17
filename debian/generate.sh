@@ -100,17 +100,13 @@ proc    /proc     proc    nosuid,noexec,gid=proc 0 0
 sysfs   /sys      sysfs   defaults 0 0
 devpts  /dev/pts  devpts  mode=0620,gid=5 0 0
 EOF
-# get disk geometry...
-REGEXP='^([0-9]+) heads, ([0-9]+) sectors/track, ([0-9]+) cylinders.*$'
-GEOMETRY=`fdisk -l "$LOOPDEV" | grep -E "$REGEXP" | sed -r "s@$REGEXP@\1 \2 \3@"`
-set $GEOMETRY
 cat > "$ROOTFS"/etc/lilo-loop.conf << EOF
 boot=$LOOPDEV
 disk=$LOOPDEV
   bios=0x80
-  heads=$1
-  sectors=$2
-  cylinders=$3
+  heads=1
+  sectors=63
+  cylinders=1
   partition=$LOOPDEV1
   start=63
 delay=1

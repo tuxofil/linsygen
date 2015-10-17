@@ -20,7 +20,6 @@ You need following tools installed to run generator:
 - losetup;
 - parted;
 - kpartx;
-- fdisk;
 - ssh-keygen;
 - tar;
 - mkfs.ext3.
