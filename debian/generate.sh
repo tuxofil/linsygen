@@ -42,6 +42,9 @@ parted --script "$LOOPDEV" mklabel msdos
 parted --script "$LOOPDEV" mkpart primary ext2 1 $DISKSIZE
 kpartx -a "$LOOPDEV"
 LOOPDEV1=/dev/mapper/`basename "$LOOPDEV"`p1
+# Sleep for some time because since Jessie
+# device for partition is created not synchronously
+sleep 3s
 mkfs.ext3 "$LOOPDEV1"
 mkdir -m 755 -p "$ROOTFS"
 mount "$LOOPDEV1" "$ROOTFS"
